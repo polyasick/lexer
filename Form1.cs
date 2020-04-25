@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -122,7 +122,7 @@ namespace опредение_числа
                     tokenType = "Comma";
                 }
                 return tokenType;
-            }
+            } 
 
             public static List<Lexem> getLex(string text)
             {
@@ -135,7 +135,7 @@ namespace опредение_числа
                 for (int i = 0; i < text.Length; i++) //Цикл по символам строки
                 {
                     Lexem lex = new Lexem("Unknown", ""); //Пока не начали распознавание очередной лексемы
-
+                    
                     while (i < text.Length && transTable(text[i], st_id) != -1) //Начинаем распознавание очередной лексемы
                     {
                         lex1 += Convert.ToString(text[i]);
@@ -143,29 +143,94 @@ namespace опредение_числа
                         st_id = transTable(text[i], buff);
                         i++;
                     }
+                    
 
-                    i--;
-                    lex.Value = lex1;
-                    lex.TokType = getTokenType(transTable(text[i], buff));
-                    st_id = 0;
-                    lex1 = "";
+                    if (st_id == 4)
+                    {
+                        i--;
+                        //string buf_str = text.Remove(end_i);
+                        //buf_str = buf_str.Substring(start_i, end_i - start_i);
+                        string numb_buf = "";
+                        string let_buf = "";
+                        string oper_buf = "";
+                        int j;
 
-                    lexems.Add(lex);
+                        for (j = 0; j < lex1.Length; j++)
+                        {
+                            if (char.IsDigit(lex1[j]))
+                                numb_buf += Convert.ToString(lex1[j]);
+                            else if (char.IsLetter(lex1[j]))
+                                let_buf += Convert.ToString(lex1[j]);
+                            else if (lex1[j] == '+' || lex1[j] == '-')
+                                oper_buf = Convert.ToString(lex1[j]);
+
+                        }
+                        lex.Value = numb_buf; lex.TokType = "Number"; lexems.Add(lex);
+                        lex.Value = let_buf; lex.TokType = "Identifier"; lexems.Add(lex);
+                        lex.Value = oper_buf; lex.TokType = "Operator"; lexems.Add(lex);
+                        st_id = 0;
+                        lex1 = "";
+
+                    }
+                    else
+                    {
+                        i--;
+                        lex.Value = lex1;
+                        lex.TokType = getTokenType(transTable(text[i], buff));
+                        st_id = 0;
+                        lex1 = "";
+                        lexems.Add(lex);
+                    }
+
+                   
                 }
+                
 
-                return lexems;
+                    return lexems;
             }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            string str = textBox2.Text;
-
-            var lexems = LexicalAnalyzer.getLex(str); 
-            foreach (var lexem in lexems) 
+            bool flag = false;
+            string str = textBox2.Text + " ";
+            string buf1 = str;
+            int k = 0;
+            for(int i = 0; i < buf1.Length; i++)
             {
-                listBox1.Items.Add(lexem.TokType + " " + lexem.Value);
-            }    
+                if(buf1[i] == ',' || buf1[i] == ' ')
+                {
+                    string buf;
+                    buf = buf1.Substring(0, i);
+                    if (buf.EndsWith("."))
+                    {
+                        MessageBox.Show("Лексема не должна заканчиваться точкой, исправьте");
+                        buf1 = "";
+                        //textBox2.Clear();
+                        flag = true;
+                        break;
+                    }
+                    buf = buf + str[i];
+                    buf1 = buf1.Replace(buf, "");
+                    i = -1;
+                }
+
+                k++;
+                if (k == str.Length)
+                    break;
+            }
+
+            
+            if (flag == false)
+            {
+                var lexems = LexicalAnalyzer.getLex(str);
+                foreach (var lexem in lexems)
+                {
+                    listBox1.Items.Add(lexem.TokType + " " + lexem.Value);
+                }
+            }
+            
+                
 
         }
 
